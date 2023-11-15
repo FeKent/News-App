@@ -29,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -79,14 +80,17 @@ fun NewsApp(newsViewModel: NewsViewModel = viewModel()) {
 }
 
 @Composable
-fun ArticleCard(claim: String, summary: String) {
+fun ArticleCard(claim: String, summary: String, source: String) {
+    val uriHandler = LocalUriHandler.current
+
     Card(modifier = Modifier.shadow(4.dp, RoundedCornerShape(32.dp))) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = claim,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                modifier = Modifier.clickable { uriHandler.openUri(source) }
             )
             Spacer(modifier = Modifier.size(4.dp))
             Divider()
@@ -107,7 +111,8 @@ fun ArticleCard(claim: String, summary: String) {
 fun ArticleCardExample() {
     ArticleCard(
         claim = "Air Traffic Control Staff Shortages Cause Flight Disruptions at London's Gatwick Airport",
-        summary = "Thousands of passengers face flight disruptions at London's Gatwick Airport due to air traffic control staff shortages, causing delays, diversions, and cancellations."
+        summary = "Thousands of passengers face flight disruptions at London's Gatwick Airport due to air traffic control staff shortages, causing delays, diversions, and cancellations.",
+        source = "https://www.independent.co.uk/travel/news-and-advice/gatwick-flights-diverted-staff-shortage-b2411736.html"
     )
 }
 
