@@ -2,7 +2,9 @@
 
 package com.example.newsapp
 
+import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
@@ -11,8 +13,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Card
@@ -25,7 +29,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -39,9 +46,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.newsapp.networking.NewsApi
+import com.example.newsapp.networking.NewsApiNewsArticleSearchResult
+import com.example.newsapp.networking.NewsApiNewsArticleSearchResults
 import com.example.newsapp.ui.theme.NewsAppTheme
 import com.example.newsapp.viewmodel.NewsViewModel
-import java.time.format.TextStyle
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.lang.Exception
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,20 +73,55 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun NewsApp(newsViewModel: NewsViewModel = viewModel()) {
     val valueState = newsViewModel.value.collectAsState()
+    val key by rememberUpdatedState(newValue = valueState.value)
+    val articleScope = CoroutineScope(Dispatchers.Main)
+    val articlesState by newsViewModel.articles.collectAsState()
+
 
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
         NewsAppTopBar()
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.verticalScroll(
+                rememberScrollState()
+            )
+        ) {
             TextField(
                 value = valueState.value ?: "",
-                onValueChange = { newsViewModel.value.value = it },
+                onValueChange = { newsViewModel.value.value = it
+                    Log.i("TextField Value:", it)},
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Words,
                     imeAction = ImeAction.Done
                 )
+            )
+            LaunchedEffect(key) {
+                articleScope.launch {
+                    try {
+                        val response: NewsApiNewsArticleSearchResults = NewsApi.service.getNewsArticles(
+                            apiKey = "227b723f76c12fa955a3af2823aeff98",
+                            term = "London"
+                        )
+                        val articles = response.results.map { it?.toNewsArticles() }
+                        newsViewModel.updateArticles(articles)
+                        Log.i("Response Raw", response.results.toString())
+
+                    } catch (e: Exception) {
+                        Log.i("Error:", e.toString() )
+                    }
+                }
+            }
+        }
+
+        Log.i("API CHECK", newsViewModel.articles.value.toString())
+        articlesState.forEach { article ->
+            ArticleCard(
+                claim = article?.claim.toString(),
+                summary = article?.summary.toString(),
+                source = article?.source_citation_url.toString()
             )
         }
     }
@@ -132,5 +180,13 @@ fun NewsAppTopBar() {
         modifier = Modifier
             .padding(8.dp)
             .shadow(4.dp, RoundedCornerShape(8.dp))
+    )
+}
+
+fun NewsApiNewsArticleSearchResult.toNewsArticles(): NewsApiNewsArticleSearchResult {
+    return NewsApiNewsArticleSearchResult(
+        claim = this.claim.orEmpty(),
+        summary = this.summary.orEmpty(),
+        source_citation_url = this.source_citation_url.orEmpty()
     )
 }
