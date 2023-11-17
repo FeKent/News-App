@@ -5,9 +5,9 @@ import retrofit2.http.Header
 import retrofit2.http.Query
 
 interface NewsService {
-    @GET("report?")
+    @GET("reports")
     suspend fun getNewsArticles(
-        @Header("Authorization") api_key: String,
         @Query("term") term: String,
-    ): NewsApiNewsArticleSearchResult
+        @Query("api_key") apiKey: String,
+    ): NewsApiNewsArticleSearchResults
 }

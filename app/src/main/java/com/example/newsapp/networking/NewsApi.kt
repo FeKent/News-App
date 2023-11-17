@@ -16,6 +16,7 @@ object NewsApi {
             .addConverterFactory(MoshiConverterFactory.create(moshi)).build()
 
         service = retrofit.create(NewsService::class.java)
+
     }
 
 }
