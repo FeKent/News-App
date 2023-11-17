@@ -73,6 +73,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun NewsApp(newsViewModel: NewsViewModel = viewModel()) {
@@ -81,6 +82,22 @@ fun NewsApp(newsViewModel: NewsViewModel = viewModel()) {
     val articleScope = CoroutineScope(Dispatchers.Main)
     val articlesState by newsViewModel.articles.collectAsState()
 
+    LaunchedEffect(key) {
+        articleScope.launch {
+            try {
+                val response: NewsApiNewsArticleSearchResults = NewsApi.service.getNewsArticles(
+                    apiKey = "227b723f76c12fa955a3af2823aeff98",
+                    term = "London"
+                )
+                val articles = response.reports.map { it?.toNewsArticles() }
+                newsViewModel.updateArticles(articles)
+                Log.i("Response Raw", response.reports.toString())
+
+            } catch (e: Exception) {
+                Log.i("Error:", e.toString() )
+            }
+        }
+    }
 
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
         NewsAppTopBar()
@@ -98,31 +115,14 @@ fun NewsApp(newsViewModel: NewsViewModel = viewModel()) {
                     imeAction = ImeAction.Done
                 )
             )
-            LaunchedEffect(key) {
-                articleScope.launch {
-                    try {
-                        val response: NewsApiNewsArticleSearchResults = NewsApi.service.getNewsArticles(
-                            apiKey = "227b723f76c12fa955a3af2823aeff98",
-                            term = "London"
-                        )
-                        val articles = response.results.map { it?.toNewsArticles() }
-                        newsViewModel.updateArticles(articles)
-                        Log.i("Response Raw", response.results.toString())
-
-                    } catch (e: Exception) {
-                        Log.i("Error:", e.toString() )
-                    }
-                }
+            Log.i("API CHECK", newsViewModel.articles.value.toString())
+            articlesState.forEach { article ->
+                ArticleCard(
+                    claim = article?.claim.toString(),
+                    summary = article?.summary.toString(),
+                    source = article?.source_citation_url.toString()
+                )
             }
-        }
-
-        Log.i("API CHECK", newsViewModel.articles.value.toString())
-        articlesState.forEach { article ->
-            ArticleCard(
-                claim = article?.claim.toString(),
-                summary = article?.summary.toString(),
-                source = article?.source_citation_url.toString()
-            )
         }
     }
 }
