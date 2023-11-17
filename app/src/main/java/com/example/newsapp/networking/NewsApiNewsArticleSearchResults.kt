@@ -1,5 +1,8 @@
 package com.example.newsapp.networking
 
+import com.squareup.moshi.Json
+
 data class NewsApiNewsArticleSearchResults(
-    val reports: List<NewsApiNewsArticleSearchResult?>
+    @Json(name="reports")
+    val results: List<NewsApiNewsArticleSearchResult?>
 )

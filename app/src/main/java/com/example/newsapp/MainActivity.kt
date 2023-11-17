@@ -86,12 +86,12 @@ fun NewsApp(newsViewModel: NewsViewModel = viewModel()) {
         articleScope.launch {
             try {
                 val response: NewsApiNewsArticleSearchResults = NewsApi.service.getNewsArticles(
-                    apiKey = "227b723f76c12fa955a3af2823aeff98",
+                    apiKey = BuildConfig.API_KEY,
                     term = "London"
                 )
-                val articles = response.reports.map { it?.toNewsArticles() }
+                val articles = response.results.map { it?.toNewsArticles() }
                 newsViewModel.updateArticles(articles)
-                Log.i("Response Raw", response.reports.toString())
+                Log.i("Response Raw", response.results.toString())
 
             } catch (e: Exception) {
                 Log.i("Error:", e.toString() )
@@ -120,7 +120,7 @@ fun NewsApp(newsViewModel: NewsViewModel = viewModel()) {
                 ArticleCard(
                     claim = article?.claim.toString(),
                     summary = article?.summary.toString(),
-                    source = article?.source_citation_url.toString()
+                    source = article?.url.toString()
                 )
             }
         }
@@ -164,6 +164,7 @@ fun ArticleCardExample() {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewsAppTopBar() {
     CenterAlignedTopAppBar(
@@ -187,6 +188,6 @@ fun NewsApiNewsArticleSearchResult.toNewsArticles(): NewsApiNewsArticleSearchRes
     return NewsApiNewsArticleSearchResult(
         claim = this.claim.orEmpty(),
         summary = this.summary.orEmpty(),
-        source_citation_url = this.source_citation_url.orEmpty()
+        url = this.url.orEmpty()
     )
 }
