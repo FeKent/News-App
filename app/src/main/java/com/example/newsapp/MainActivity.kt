@@ -87,7 +87,7 @@ fun NewsApp(newsViewModel: NewsViewModel = viewModel()) {
             try {
                 val response: NewsApiNewsArticleSearchResults = NewsApi.service.getNewsArticles(
                     apiKey = BuildConfig.API_KEY,
-                    term = "London"
+                    term = valueState.value.toString()
                 )
                 val articles = response.results.map { it?.toNewsArticles() }
                 newsViewModel.updateArticles(articles)
