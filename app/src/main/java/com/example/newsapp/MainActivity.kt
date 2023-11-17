@@ -11,6 +11,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -115,13 +116,18 @@ fun NewsApp(newsViewModel: NewsViewModel = viewModel()) {
                     imeAction = ImeAction.Done
                 )
             )
+            Spacer(modifier = Modifier.size(8.dp))
             Log.i("API CHECK", newsViewModel.articles.value.toString())
             articlesState.forEach { article ->
-                ArticleCard(
-                    claim = article?.claim.toString(),
-                    summary = article?.summary.toString(),
-                    source = article?.url.toString()
-                )
+                Column {
+                    ArticleCard(
+                        claim = article?.claim.toString(),
+                        summary = article?.summary.toString(),
+                        source = article?.url.toString()
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                }
+                
             }
         }
     }
@@ -131,14 +137,14 @@ fun NewsApp(newsViewModel: NewsViewModel = viewModel()) {
 fun ArticleCard(claim: String, summary: String, source: String) {
     val uriHandler = LocalUriHandler.current
 
-    Card(modifier = Modifier.shadow(4.dp, RoundedCornerShape(32.dp))) {
+    Card(modifier = Modifier.shadow(4.dp, RoundedCornerShape(32.dp)).padding(horizontal = 8.dp)) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = claim,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.clickable { uriHandler.openUri(source) }
+                modifier = Modifier.fillMaxWidth().clickable { uriHandler.openUri(source) }
             )
             Spacer(modifier = Modifier.size(4.dp))
             Divider()
